@@ -1,14 +1,6 @@
 var eejs = require('ep_etherpad-lite/node/eejs/');
 var Changeset = require("ep_etherpad-lite/static/js/Changeset");
-exports.eejsBlock_editbarMenuLeft = function (hook_name, args, cb) {
-  args.content = args.content + eejs.require("ep_align/templates/editbarButtons.ejs");
-  return cb();
-}
-
-exports.eejsBlock_dd_format = function (hook_name, args, cb) {
-  args.content = args.content + eejs.require("ep_align/templates/fileMenu.ejs");
-  return cb();
-}
+var Security = require('ep_etherpad-lite/static/js/security');
 
 function getInlineStyle(header) {
  // TODO!
@@ -39,25 +31,23 @@ function getInlineStyle(header) {
 }
 // line, apool,attribLine,text
 exports.getLineHTMLForExport = function (hook, context) {
-  var header = _analyzeLine(context.attribLine, context.apool);
-  var lineContent = context.lineContent;
-  if (header) {
-    var inlineStyle = getInlineStyle(header);
-    context.lineContent = "<" + header + " style=\"" + inlineStyle + "\">" + lineContent + "</" + header + ">";
+  var alignment = _analyzeLine(context.attribLine, context.apool);
+  if (alignment) {
+    context.lineContent = "<p style='text-align:" + alignment + "'>" + Security.escapeHTML(context.text.substring(1)) + "</p>";
+    return "<p style='text-align:" + alignment + "'>" + Security.escapeHTML(context.text.substring(1)) + "</p>";
   }
 }
 
-
 function _analyzeLine(alineAttrs, apool) {
-  var header = null;
+  var alignment = null;
   if (alineAttrs) {
     var opIter = Changeset.opIterator(alineAttrs);
     if (opIter.hasNext()) {
       var op = opIter.next();
-      header = Changeset.opAttributeValue(op, 'align', apool);
+      alignment = Changeset.opAttributeValue(op, 'align', apool);
     }
   }
-  return header;
+  return alignment;
 }
 
 
@@ -67,25 +57,25 @@ exports.padInitToolbar = function (hook_name, args) {
     var alignLeftButton = toolbar.button({
         command: 'alignLeft',
         localizationId: 'ep_align.toolbar.left.title',
-        class: "buttonicon grouped-left ep_align ep_align_left"
+        class: "buttonicon buttonicon-align-left ep_align ep_align_left"
     });
 
     var alignCenterButton = toolbar.button({
         command: 'alignCenter',
         localizationId: 'ep_align.toolbar.middle.title',
-        class: "buttonicon grouped-middle ep_align ep_align_center"
+        class: "buttonicon buttonicon-align-center ep_align ep_align_center"
     });
 
     var alignJustifyButton = toolbar.button({
         command: 'alignJustify',
         localizationId: 'ep_align.toolbar.justify.title',
-        class: "buttonicon grouped-middle ep_align ep_align_justify"
+        class: "buttonicon buttonicon-align-justify ep_align ep_align_justify"
     });
 
     var alignRightButton = toolbar.button({
         command: 'alignRight',
         localizationId: 'ep_align.toolbar.right.title',
-        class: "buttonicon grouped-right ep_align ep_align_right"
+        class: "buttonicon buttonicon-align-right ep_align ep_align_right"
     });
 
     toolbar.registerButton('alignLeft', alignLeftButton);
