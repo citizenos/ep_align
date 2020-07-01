@@ -2,49 +2,22 @@ var eejs = require('ep_etherpad-lite/node/eejs/');
 var Changeset = require("ep_etherpad-lite/static/js/Changeset");
 var Security = require('ep_etherpad-lite/static/js/security');
 
-function getInlineStyle(header) {
- // TODO!
-  switch (header) {
-  case "h1":
-    return "font-size: 2.0em;line-height: 120%;";
-    break;
-  case "h2":
-    return "font-size: 1.5em;line-height: 120%;";
-    break;
-  case "h3":
-    return "font-size: 1.17em;line-height: 120%;";
-    break;
-  case "h4":
-    return "line-height: 120%;";
-    break;
-  case "h5":
-    return "font-size: 0.83em;line-height: 120%;";
-    break;
-  case "h6":
-    return "font-size: 0.75em;line-height: 120%;";
-    break;
-  case "code":
-    return "font-family: monospace";
-  }
-
-  return "";
-}
 // line, apool,attribLine,text
 exports.getLineHTMLForExport = function (hook, context) {
-  var alignment = _analyzeLine(context.attribLine, context.apool);
+  var alignment = _analyzeLine(context.attribLine, context.apool, 'align');
   if (alignment) {
-    context.lineContent = "<p style='text-align:" + alignment + "'>" + Security.escapeHTML(context.text.substring(1)) + "</p>";
-    return "<p style='text-align:" + alignment + "'>" + Security.escapeHTML(context.text.substring(1)) + "</p>";
+    context.lineContent = "<" + alignment + " >" + context.lineContent + "</" + alignment + ">";
+    return context.lineContent;
   }
 }
 
-function _analyzeLine(alineAttrs, apool) {
+function _analyzeLine(alineAttrs, apool, attrName) {
   var alignment = null;
   if (alineAttrs) {
     var opIter = Changeset.opIterator(alineAttrs);
     if (opIter.hasNext()) {
       var op = opIter.next();
-      alignment = Changeset.opAttributeValue(op, 'align', apool);
+      alignment = Changeset.opAttributeValue(op, attrName, apool);
     }
   }
   return alignment;
